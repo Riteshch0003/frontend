@@ -76,9 +76,7 @@ const MyNotes = ({ search = "" }) => {
                     fontSize: 18,
                   }}
                 >
-                  <Accordion.Button as="div" eventKey={String(index)}>
-                    {note.title}
-                  </Accordion.Button>
+                  <Accordion.Button as="div">{note.title}</Accordion.Button>
                 </span>
                 <div>
                   <Link to={`/note/${note._id}`}>
