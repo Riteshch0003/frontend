@@ -1,48 +1,36 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import MainScreen from "../../components/MainScreen";
 import { Form, Button, Row, Col } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import "./LoginScreen.css";
-import axios from "axios";
-
+import ErrorMessage from "../../components/ErrorMessage";
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "../../components/actions/userActions";
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate(); // Replace history with useNavigate
+  const dispatch = useDispatch();
+  const userLogin = useSelector((state) => state.userLogin);
+  const { loading, error, userInfo } = userLogin;
+  useEffect(() => {
+    const userInfo = localStorage.getItem("userInfo");
+    if (userInfo) {
+      navigate("/mynotes");
+    }
+  }, [navigate, userInfo]);
 
   const submitHandler = async (e) => {
-    e.preventDefault(); // Correct typo
-    try {
-      const Config = {
-        headers: {
-          "Content-type": "application/json",
-        },
-      };
-
-      setLoading(true);
-      const { data } = await axios.post(
-        "/api/users/login", // Update the backend URL if necessary
-        {
-          email,
-          password,
-        },
-        Config
-      );
-
-      console.log(data);
-      localStorage.setItem("userInfo", JSON.stringify(data));
-      setLoading(false);
-    } catch (error) {
-      setError(error.response?.data?.message || "An error occurred");
-      setLoading(false);
-    }
+    e.preventDefault();
+    dispatch(login(email, password));
   };
 
   return (
     <MainScreen title="LOGIN">
       <div className="loginContainer">
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <ErrorMessage variant="danger">{error}</ErrorMessage>}
         {loading && <div>Loading...</div>}
 
         <Form onSubmit={submitHandler}>
@@ -53,6 +41,7 @@ const LoginScreen = () => {
               value={email}
               placeholder="Enter email"
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </Form.Group>
 
@@ -63,12 +52,15 @@ const LoginScreen = () => {
               value={password}
               placeholder="Password"
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </Form.Group>
-          <Button variant="primary" type="submit">
-            Submit
+
+          <Button variant="primary" type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Submit"}
           </Button>
         </Form>
+
         <Row className="py-3">
           <Col>
             New User? <Link to="/register">Register Here</Link>
