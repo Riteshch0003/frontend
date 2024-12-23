@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Accordion, Badge, Button, Card } from "react-bootstrap";
 import MainScreen from "../../components/MainScreen";
 import { Link, useNavigate } from "react-router-dom";
@@ -18,7 +18,7 @@ const MyNotes = ({ search = "" }) => {
   const userInfo = useSelector((state) => state.userLogin?.userInfo);
   const loadingDelete = useSelector((state) => state.noteDelete?.loading);
   const errorDelete = useSelector((state) => state.noteDelete?.error);
-
+  const [activeKey, setActiveKey] = useState(null);
   // Fetch notes whenever the user logs in or the notes state is updated
   useEffect(() => {
     if (!userInfo) {
@@ -61,9 +61,11 @@ const MyNotes = ({ search = "" }) => {
       ) : filteredNotes.length === 0 ? (
         <div>No notes found</div>
       ) : (
-        // Render notes
         filteredNotes.reverse().map((note, index) => (
-          <Accordion key={note._id} defaultActiveKey="">
+          <Accordion
+            key={note._id}
+            activeKey={activeKey === index ? String(index) : null} // Control active state
+          >
             <Card style={{ margin: 10 }}>
               <Card.Header style={{ display: "flex" }}>
                 <span
@@ -75,8 +77,11 @@ const MyNotes = ({ search = "" }) => {
                     alignSelf: "center",
                     fontSize: 18,
                   }}
+                  onClick={() =>
+                    setActiveKey(activeKey === index ? null : index)
+                  } // Toggle accordion
                 >
-                  <Accordion.Button as="div">{note.title}</Accordion.Button>
+                  {note.title}
                 </span>
                 <div>
                   <Link to={`/note/${note._id}`}>
@@ -92,17 +97,17 @@ const MyNotes = ({ search = "" }) => {
                 </div>
               </Card.Header>
 
-              {/* Content of the note that will be shown when the Accordion is expanded */}
+              {/* Content of the note shown when the Accordion is expanded */}
               <Accordion.Collapse eventKey={String(index)}>
                 <Card.Body>
                   <h4>
                     <Badge bg="success">Category - {note.category}</Badge>
                   </h4>
                   <blockquote className="blockquote mb-0">
-                    <ReactMarkdown>{note.content}</ReactMarkdown>
+                    <p>{note.content}</p>
                     <footer className="blockquote-footer">
                       Created on{" "}
-                      <cite title="Source Title">
+                      <cite>
                         {new Date(note.createdAt).toLocaleDateString()}
                       </cite>
                     </footer>
